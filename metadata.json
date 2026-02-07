@@ -1,0 +1,5 @@
+{
+  "name": "The Chief's Log: TSSA 2nd Class Simulator",
+  "description": "A high-fidelity engineering simulator for the TSSA 2nd Class Power Engineering license, featuring dynamic Rankine cycle problems and enforced regulatory citation logic.",
+  "requestFramePermissions": []
+}
