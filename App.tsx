@@ -13,17 +13,41 @@ type AppMode = 'training' | 'simulation' | 'exam' | 'scoreboard';
 
 const App: React.FC = () => {
   const [activePaper, setActivePaper] = useState<Paper>(Paper.P2A1);
-  const [appMode, setAppMode] = useState<AppMode>(() => (localStorage.getItem('chief_mode') as AppMode) || 'training');
+  const [appMode, setAppMode] = useState<AppMode>(() => {
+    try {
+      return (localStorage.getItem('chief_mode') as AppMode) || 'training';
+    } catch { return 'training'; }
+  });
+  
   const [score, setScore] = useState(() => Number(localStorage.getItem('chief_score')) || 0);
-  const [history, setHistory] = useState<HistoryEntry[]>(() => JSON.parse(localStorage.getItem('chief_history') || '[]'));
-  const [highScores, setHighScores] = useState<ExamRecord[]>(() => JSON.parse(localStorage.getItem('chief_high_scores') || '[]'));
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => (localStorage.getItem('chief_theme') as 'dark' | 'light') || 'dark');
+  
+  const [history, setHistory] = useState<HistoryEntry[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('chief_history') || '[]');
+    } catch { return []; }
+  });
+
+  const [highScores, setHighScores] = useState<ExamRecord[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('chief_high_scores') || '[]');
+    } catch { return []; }
+  });
+
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    try {
+      return (localStorage.getItem('chief_theme') as 'dark' | 'light') || 'dark';
+    } catch { return 'dark'; }
+  });
   
   const mainRef = useRef<HTMLElement>(null);
 
   const [examSequences] = useState<Record<string, number[]>>(() => {
-    const saved = localStorage.getItem('chief_sequences');
-    if (saved) return JSON.parse(saved);
+    try {
+      const saved = localStorage.getItem('chief_sequences');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.warn("Sequence data corrupt, regenerating...");
+    }
     const initial = {
       [Paper.P2A1]: generateSecureSequence(TOTAL_QUESTIONS_PER_SECTION),
       [Paper.P2A2]: generateSecureSequence(TOTAL_QUESTIONS_PER_SECTION),
@@ -37,14 +61,13 @@ const App: React.FC = () => {
   });
 
   const [sequencePositions, setSequencePositions] = useState<Record<string, number>>(() => {
-    const saved = localStorage.getItem('chief_positions');
     const defaultPositions = {
       [Paper.P2A1]: 0, [Paper.P2A2]: 0, [Paper.P2A3]: 0,
       [Paper.P2B1]: 0, [Paper.P2B2]: 0, [Paper.P2B3]: 0
     };
-    if (!saved) return defaultPositions;
     try {
-      return JSON.parse(saved);
+      const saved = localStorage.getItem('chief_positions');
+      return saved ? JSON.parse(saved) : defaultPositions;
     } catch {
       return defaultPositions;
     }
@@ -65,12 +88,16 @@ const App: React.FC = () => {
 
   // Persistence
   useEffect(() => {
-    localStorage.setItem('chief_score', score.toString());
-    localStorage.setItem('chief_history', JSON.stringify(history));
-    localStorage.setItem('chief_high_scores', JSON.stringify(highScores));
-    localStorage.setItem('chief_theme', theme);
-    localStorage.setItem('chief_mode', appMode);
-    localStorage.setItem('chief_positions', JSON.stringify(sequencePositions));
+    try {
+      localStorage.setItem('chief_score', score.toString());
+      localStorage.setItem('chief_history', JSON.stringify(history));
+      localStorage.setItem('chief_high_scores', JSON.stringify(highScores));
+      localStorage.setItem('chief_theme', theme);
+      localStorage.setItem('chief_mode', appMode);
+      localStorage.setItem('chief_positions', JSON.stringify(sequencePositions));
+    } catch (e) {
+      console.error("Storage sync failed", e);
+    }
   }, [score, history, highScores, theme, sequencePositions, appMode]);
 
   // Scroll reset
