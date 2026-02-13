@@ -1,7 +1,8 @@
 
 /**
  * THE CHIEF'S NEURAL CORE - OFFLINE
- * API functionality has been disabled as requested.
+ * All AI SDK initializations and environment variable checks 
+ * have been purged to prevent "Zombie Code" crashes.
  */
 
 export const getChiefAnalysis = async () => {
