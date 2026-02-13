@@ -315,8 +315,8 @@ const theoryPools: Record<string, any[]> = {
 { topic: 'Industrial Admin', prompt: 'An "Appeal" against a TSSA Director\'s order must be filed within:', correct: '30 days', distractors: ['10 days', '60 days', '1 year'], citation: 'TSSA Act' },
 { topic: 'Industrial Admin', prompt: 'If a plant is "Down-rated", the Chief Engineer must:', correct: 'Notify the TSSA and potentially adjust staffing', distractors: ['Fire all staff', 'Lock the doors', 'Increase fuel'], citation: 'O. Reg 219/01' },
 { topic: 'Industrial Admin', prompt: 'A "Shift Engineer" is defined as a person who:', correct: 'Is in charge of the plant under the direction of the Chief', distractors: ['Cleans the plant', 'Repairs the boiler', 'Orders the fuel'], citation: 'O. Reg 219/01' },
-{ topic: 'Industrial Admin', prompt: 'The "Owner" of a plant is responsible for:', correct: 'Ensuring the plant is operated by qualified persons', distractors: ['Operating the boiler', 'Inspecting the welds', 'Writing the exams'], citation: 'TSSA Act' }
-    { topic: 'Legislation', prompt: 'A Certificate of Competency for a Power Engineer is valid for:', correct: '1 year in Ontario', distractors: ['3 years', '5 years', 'Lifetime'], citation: null, explanation: 'Must be renewed annually.' }
+{ topic: 'Industrial Admin', prompt: 'The "Owner" of a plant is responsible for:', correct: 'Ensuring the plant is operated by qualified persons', distractors: ['Operating the boiler', 'Inspecting the welds', 'Writing the exams'], citation: 'TSSA Act' },
+{ topic: 'Legislation', prompt: 'A Certificate of Competency for a Power Engineer is valid for:', correct: '1 year in Ontario', distractors: ['3 years', '5 years', 'Lifetime'], citation: null, explanation: 'Must be renewed annually.' }
   ],
   P2A2: [
     { topic: 'Thermodynamics', prompt: 'In a regenerative cycle, bleeding steam to a feedwater heater:', correct: 'Increases thermal efficiency but decreases turbine work output per kg', distractors: ['Increases work output', 'Decreases efficiency', 'Has no effect'], citation: null },
