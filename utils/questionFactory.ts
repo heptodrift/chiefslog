@@ -1465,54 +1465,6 @@ const theoryPools: Record<string, any[]> = {
     { topic: 'Power Analysis', prompt: '[CALC-MODE] System Load: A 3-phase pump motor draws **I A** at **600 V** with **0.82 PF**. Calculate the Real Power consumed in kW.', correct: 'Calculated kW', distractors: ['I * 0.6', 'kW * 1.732', '25.0 kW'], citation: null, explanation: 'kW = (1.732 * V * I * PF) / 1000.' }
   ]
 };
-};
-
-export const generateQuestionFromEngine = (paper: Paper, index: number): Question => {
-  const poolKey = Object.keys(Paper).find(key => Paper[key as keyof typeof Paper] === paper) || 'P2A1';
-  const theoryPool = theoryPools[poolKey] || theoryPools['P2A1'];
-  
-  const isCalculation = index % 3 === 0 && (poolKey !== 'P2B2' && poolKey !== 'P2A1');
-  const qId = `CHIEF-${poolKey}-${index.toString().padStart(3, '0')}`;
-
-  if (isCalculation) {
-    const inputs = Solver.getRandomInputs();
-    const result = Solver.solveRankine(inputs.pHigh, inputs.tHigh, inputs.pLow);
-    const correct = result.efficiency.toFixed(2) + '%';
-    const { options, correctKey } = finalizeOptions(correct, [
-      (result.efficiency * 0.8).toFixed(2) + '%',
-      (result.efficiency * 1.2).toFixed(2) + '%',
-      (result.efficiency + 10).toFixed(2) + '%'
-    ]);
-
-    return {
-      id: qId,
-      paper,
-      topic: 'Thermodynamics',
-      type: 'calculation',
-      prompt: `Rankine System Diagnostic: Inlet P=${inputs.pHigh}MPa, T=${inputs.tHigh}°C, Exhaust P=${inputs.pLow}kPa. Determine thermal efficiency.`,
-      options,
-      correctKey,
-      explanation: `Calculated via Rankine Logic: h1 (Superheat) and h2 (Ideal Exhaust) derived from boundary conditions. Eff = (W_turb - W_pump) / Q_in. Reference: ${correct}`,
-      requiresCitation: false
-    };
-  } else {
-    const entry = theoryPool[index % theoryPool.length];
-    const { options, correctKey } = finalizeOptions(entry.correct, entry.distractors);
-    
-    return {
-      id: qId,
-      paper,
-      topic: entry.topic,
-      type: 'code_lookup',
-      prompt: entry.prompt,
-      options,
-      correctKey,
-      explanation: entry.explanation,
-      requiresCitation: !!entry.citation,
-      correctCitation: entry.citation || undefined
-    };
-  }
-};
 
 const generateCalcQuestion = (id: string, paper: Paper, index: number): Question => {
   if (paper.includes('2A1')) {
@@ -1567,9 +1519,43 @@ const generateCalcQuestion = (id: string, paper: Paper, index: number): Question
     };
   }
 
-  // Final fallback
-  const fallbackPool = theoryPools.P2A1;
-  const entry = fallbackPool[0];
+  // Final fallback (Should rarely happen if logic is correct)
+  return { 
+    id, paper, topic: 'General Theory', type: 'code_lookup', 
+    prompt: 'Standard Theory Question Placeholder (No Calc Available)', 
+    options: { A: 'Option 1', B: 'Option 2', C: 'Option 3', D: 'Option 4' }, 
+    correctKey: 'A', explanation: 'Fallback.', requiresCitation: false 
+  };
+};
+
+export const generateQuestionFromEngine = (paper: Paper, index: number): Question => {
+  const poolKey = Object.keys(Paper).find(key => Paper[key as keyof typeof Paper] === paper) || 'P2A1';
+  const theoryPool = theoryPools[poolKey] || theoryPools['P2A1'];
+  
+  // Only trigger calculation logic for papers that actually HAVE math defined (2A1, 2A2, 2A3, 2B3)
+  // This prevents P2B1/P2B2 from getting broken fallback questions.
+  const hasMath = ['2A1', '2A2', '2A3', '2B3'].some(p => poolKey.includes(p) || paper.includes(p));
+  const isCalculation = index % 3 === 0 && hasMath;
+  
+  const qId = `CHIEF-${poolKey}-${index.toString().padStart(3, '0')}`;
+
+  if (isCalculation) {
+    return generateCalcQuestion(qId, paper, index);
+  }
+
+  const entry = theoryPool[index % theoryPool.length];
   const { options, correctKey } = finalizeOptions(entry.correct, entry.distractors);
-  return { id, paper, topic: entry.topic, type: 'code_lookup', prompt: entry.prompt, options, correctKey, explanation: 'Fallback.', requiresCitation: false };
+  
+  return {
+    id: qId,
+    paper,
+    topic: entry.topic,
+    type: 'code_lookup',
+    prompt: entry.prompt,
+    options,
+    correctKey,
+    explanation: entry.explanation,
+    requiresCitation: !!entry.citation,
+    correctCitation: entry.citation || undefined
+  };
 };
