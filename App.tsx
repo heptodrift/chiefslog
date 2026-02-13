@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
+
+import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
 import DiagnosticDisplay from './components/DiagnosticDisplay';
 import { getChiefAnalysis, getChiefTip } from './services/geminiService';
 import { Paper, Question, HistoryEntry, ExamRecord } from './types';
@@ -19,6 +20,9 @@ const App: React.FC = () => {
   const [highScores, setHighScores] = useState<ExamRecord[]>(() => JSON.parse(localStorage.getItem('chief_high_scores') || '[]'));
   const [theme, setTheme] = useState<'dark' | 'light'>(() => (localStorage.getItem('chief_theme') as 'dark' | 'light') || 'dark');
   
+  // Ref for scroll control
+  const mainRef = useRef<HTMLElement>(null);
+
   const [examSequences] = useState<Record<string, number[]>>(() => {
     const saved = localStorage.getItem('chief_sequences');
     if (saved) return JSON.parse(saved);
@@ -57,11 +61,14 @@ const App: React.FC = () => {
 
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<{ isCorrect: boolean; message: string; chiefNote?: string; explanation?: string } | null>(null);
+  const [feedback, setFeedback] = useState<{ isCorrect: boolean; message: string; explanation?: string } | null>(null);
+  const [chiefAnalysis, setChiefAnalysis] = useState<string | null>(null);
   const [chiefTip, setChiefTip] = useState<string>("");
   const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // Persistence
   useEffect(() => {
     localStorage.setItem('chief_score', score.toString());
     localStorage.setItem('chief_history', JSON.stringify(history));
@@ -71,9 +78,17 @@ const App: React.FC = () => {
     localStorage.setItem('chief_positions', JSON.stringify(sequencePositions));
   }, [score, history, highScores, theme, sequencePositions, appMode]);
 
+  // AUTO-SCROLL TO TOP ON NEW QUESTION
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTop = 0;
+    }
+  }, [currentQuestion?.id]);
+
   const loadQuestion = useCallback(async (paper: Paper, position: number, isExam: boolean = false) => {
     setLoading(true);
     setFeedback(null);
+    setChiefAnalysis(null);
     setSelectedOption(null);
     
     if (!isExam) getChiefTip(paper).then(setChiefTip);
@@ -151,8 +166,8 @@ const App: React.FC = () => {
     setExamState(prev => prev ? { ...prev, isFinished: true } : null);
   };
 
-  const handleOptionSelect = async (key: string) => {
-    if (feedback || !currentQuestion || loading) return;
+  const handleOptionSelect = (key: string) => {
+    if (feedback || !currentQuestion) return;
     
     setSelectedOption(key);
     const isCorrect = key === currentQuestion.correctKey;
@@ -171,15 +186,27 @@ const App: React.FC = () => {
       timestamp: Date.now() 
     }, ...prev].slice(0, 10));
 
-    setLoading(true);
-    const chiefNote = await getChiefAnalysis(currentQuestion.prompt, currentQuestion.options[key], isCorrect, currentQuestion.explanation);
+    // Instant Feedback
     setFeedback({ 
       isCorrect, 
       message: isCorrect ? "Log Verified." : "Critical Oversight.", 
-      chiefNote,
       explanation: currentQuestion.explanation 
     });
-    setLoading(false);
+  };
+
+  const consultTheChief = async () => {
+    if (!currentQuestion || !selectedOption || aiLoading) return;
+    
+    setAiLoading(true);
+    const note = await getChiefAnalysis(
+      currentQuestion.prompt,
+      currentQuestion.options[selectedOption],
+      selectedOption === currentQuestion.correctKey,
+      currentQuestion.explanation,
+      currentQuestion.topic
+    );
+    setChiefAnalysis(note);
+    setAiLoading(false);
   };
 
   const currentPosInSession = (sequencePositions[activePaper] ?? 0) + 1;
@@ -259,7 +286,7 @@ const App: React.FC = () => {
           </div>
           <div className="p-4 space-y-6 flex-1 overflow-y-auto custom-scrollbar">
             <div className="space-y-2">
-              <p className="text-[9px] opacity-50 mono uppercase font-black px-2">Diagnostic Tools</p>
+              <p className="text-[9px] opacity-50 mono uppercase font-black px-2">Station Controls</p>
               <button onClick={() => { setAppMode('training'); setIsMenuOpen(false); }} className={`w-full py-4 rounded-2xl flex items-center px-4 gap-3 font-black text-xs uppercase ${appMode === 'training' ? 'bg-blue-600 text-white' : 'hover:bg-white/5'}`}>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5S19.832 5.477 21 6.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                 Practice Room
@@ -292,11 +319,15 @@ const App: React.FC = () => {
           </div>
         </aside>
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-10 custom-scrollbar">
+        {/* Main scrollable area */}
+        <main 
+          ref={mainRef}
+          className="flex-1 overflow-y-auto p-4 md:p-10 custom-scrollbar scroll-smooth"
+        >
           <div className="max-w-4xl mx-auto pb-24">
             {currentQuestion && (
               <div className="space-y-6">
-                <div className={`${cardClasses} p-6 md:p-10 rounded-3xl`}>
+                <div className={`${cardClasses} p-6 md:p-10 rounded-3xl animate-in slide-in-from-top-4 fade-in duration-500`}>
                   <div className="flex justify-between items-center mb-6">
                     <span className="px-3 py-1 bg-blue-500/10 text-blue-400 text-[10px] mono font-black rounded-lg uppercase">{currentQuestion.topic}</span>
                     <span className="text-[10px] mono opacity-30 uppercase">{currentQuestion.id}</span>
@@ -309,7 +340,7 @@ const App: React.FC = () => {
                       <button
                         key={key}
                         onClick={() => handleOptionSelect(key)}
-                        disabled={!!feedback || loading}
+                        disabled={!!feedback}
                         className={`w-full p-5 md:p-6 text-left border-2 rounded-2xl transition-all flex items-center gap-5 ${feedback ? key === currentQuestion.correctKey ? 'border-emerald-500 bg-emerald-500/5' : selectedOption === key ? 'border-rose-500 bg-rose-500/5' : 'border-transparent opacity-20' : selectedOption === key ? 'border-blue-500 bg-blue-500/5' : 'border-white/5 hover:border-white/20 active:bg-white/5'}`}
                       >
                         <span className={`w-10 h-10 shrink-0 flex items-center justify-center rounded-xl font-black text-sm mono ${selectedOption === key ? 'bg-blue-600 text-white' : 'bg-white/10'}`}>{key}</span>
@@ -321,15 +352,45 @@ const App: React.FC = () => {
 
                 {feedback && (
                   <div className={`p-6 md:p-10 border-2 rounded-3xl animate-in slide-in-from-bottom-8 duration-500 ${feedback.isCorrect ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-rose-500/50 bg-rose-500/5'}`}>
-                    <div className="flex items-center gap-4 mb-6">
-                      <div className={`w-4 h-4 rounded-full ${feedback.isCorrect ? 'bg-emerald-500' : 'bg-rose-500 animate-pulse'}`}></div>
-                      <h4 className={`text-xl font-black mono uppercase ${feedback.isCorrect ? 'text-emerald-400' : 'text-rose-400'}`}>{feedback.message}</h4>
+                    <div className="flex items-center justify-between gap-4 mb-6">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-4 h-4 rounded-full ${feedback.isCorrect ? 'bg-emerald-500' : 'bg-rose-500 animate-pulse'}`}></div>
+                        <h4 className={`text-xl font-black mono uppercase ${feedback.isCorrect ? 'text-emerald-400' : 'text-rose-400'}`}>{feedback.message}</h4>
+                      </div>
+                      
+                      {!chiefAnalysis && !aiLoading && (
+                        <button 
+                          onClick={consultTheChief}
+                          className="px-4 py-2 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors"
+                        >
+                          Request Debrief [AI]
+                        </button>
+                      )}
                     </div>
+
                     <div className="mb-8 p-6 rounded-2xl bg-black/20 border border-white/5">
                        <p className="text-xs md:text-sm leading-relaxed opacity-80">{feedback.explanation}</p>
                     </div>
+
+                    {aiLoading && (
+                      <div className="py-6 text-center animate-pulse">
+                        <div className="inline-block w-2 h-2 bg-blue-500 rounded-full mr-1"></div>
+                        <div className="inline-block w-2 h-2 bg-blue-500 rounded-full mr-1"></div>
+                        <div className="inline-block w-2 h-2 bg-blue-500 rounded-full"></div>
+                        <p className="text-[9px] mono uppercase font-black mt-2 opacity-50">Chief is drafting analysis...</p>
+                      </div>
+                    )}
+
+                    {chiefAnalysis && (
+                      <div className="mb-8 p-6 rounded-2xl bg-blue-600/5 border border-blue-500/20 animate-in fade-in duration-700">
+                         <p className="text-[11px] md:text-sm italic leading-relaxed text-blue-100 opacity-90">
+                           <span className="text-blue-400 font-black mr-2">CHIEF'S DEBRIEF:</span>
+                           "{chiefAnalysis}"
+                         </p>
+                      </div>
+                    )}
+
                     <div className="space-y-6">
-                      <p className="text-[11px] md:text-sm italic leading-relaxed border-l-2 border-blue-500 pl-4 opacity-70">"{feedback.chiefNote}"</p>
                       <button onClick={nextQuestion} className="w-full py-6 bg-blue-600 text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-xl active:scale-95 transition-transform">Next Log Entry</button>
                     </div>
                   </div>
