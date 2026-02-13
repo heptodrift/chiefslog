@@ -1,7 +1,6 @@
 
-import React, { useCallback, useEffect, useState, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import DiagnosticDisplay from './components/DiagnosticDisplay';
-import { getChiefAnalysis, getChiefTip } from './services/geminiService';
 import { Paper, Question, HistoryEntry, ExamRecord } from './types';
 import { generateQuestionFromEngine } from './utils/questionFactory';
 import { generateSecureSequence } from './utils/entropy';
@@ -20,7 +19,6 @@ const App: React.FC = () => {
   const [highScores, setHighScores] = useState<ExamRecord[]>(() => JSON.parse(localStorage.getItem('chief_high_scores') || '[]'));
   const [theme, setTheme] = useState<'dark' | 'light'>(() => (localStorage.getItem('chief_theme') as 'dark' | 'light') || 'dark');
   
-  // Ref for scroll control
   const mainRef = useRef<HTMLElement>(null);
 
   const [examSequences] = useState<Record<string, number[]>>(() => {
@@ -62,10 +60,7 @@ const App: React.FC = () => {
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(null);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ isCorrect: boolean; message: string; explanation?: string } | null>(null);
-  const [chiefAnalysis, setChiefAnalysis] = useState<string | null>(null);
-  const [chiefTip, setChiefTip] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Persistence
@@ -78,7 +73,7 @@ const App: React.FC = () => {
     localStorage.setItem('chief_positions', JSON.stringify(sequencePositions));
   }, [score, history, highScores, theme, sequencePositions, appMode]);
 
-  // AUTO-SCROLL TO TOP ON NEW QUESTION
+  // Scroll reset
   useEffect(() => {
     if (mainRef.current) {
       mainRef.current.scrollTop = 0;
@@ -88,10 +83,7 @@ const App: React.FC = () => {
   const loadQuestion = useCallback(async (paper: Paper, position: number, isExam: boolean = false) => {
     setLoading(true);
     setFeedback(null);
-    setChiefAnalysis(null);
     setSelectedOption(null);
-    
-    if (!isExam) getChiefTip(paper).then(setChiefTip);
     
     const sequence = examSequences[paper];
     const actualIndex = sequence[position % TOTAL_QUESTIONS_PER_SECTION];
@@ -186,27 +178,11 @@ const App: React.FC = () => {
       timestamp: Date.now() 
     }, ...prev].slice(0, 10));
 
-    // Instant Feedback
     setFeedback({ 
       isCorrect, 
       message: isCorrect ? "Log Verified." : "Critical Oversight.", 
       explanation: currentQuestion.explanation 
     });
-  };
-
-  const consultTheChief = async () => {
-    if (!currentQuestion || !selectedOption || aiLoading) return;
-    
-    setAiLoading(true);
-    const note = await getChiefAnalysis(
-      currentQuestion.prompt,
-      currentQuestion.options[selectedOption],
-      selectedOption === currentQuestion.correctKey,
-      currentQuestion.explanation,
-      currentQuestion.topic
-    );
-    setChiefAnalysis(note);
-    setAiLoading(false);
   };
 
   const currentPosInSession = (sequencePositions[activePaper] ?? 0) + 1;
@@ -319,7 +295,6 @@ const App: React.FC = () => {
           </div>
         </aside>
 
-        {/* Main scrollable area */}
         <main 
           ref={mainRef}
           className="flex-1 overflow-y-auto p-4 md:p-10 custom-scrollbar scroll-smooth"
@@ -352,43 +327,14 @@ const App: React.FC = () => {
 
                 {feedback && (
                   <div className={`p-6 md:p-10 border-2 rounded-3xl animate-in slide-in-from-bottom-8 duration-500 ${feedback.isCorrect ? 'border-emerald-500/50 bg-emerald-500/5' : 'border-rose-500/50 bg-rose-500/5'}`}>
-                    <div className="flex items-center justify-between gap-4 mb-6">
-                      <div className="flex items-center gap-4">
-                        <div className={`w-4 h-4 rounded-full ${feedback.isCorrect ? 'bg-emerald-500' : 'bg-rose-500 animate-pulse'}`}></div>
-                        <h4 className={`text-xl font-black mono uppercase ${feedback.isCorrect ? 'text-emerald-400' : 'text-rose-400'}`}>{feedback.message}</h4>
-                      </div>
-                      
-                      {!chiefAnalysis && !aiLoading && (
-                        <button 
-                          onClick={consultTheChief}
-                          className="px-4 py-2 bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-500/30 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors"
-                        >
-                          Request Debrief [AI]
-                        </button>
-                      )}
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className={`w-4 h-4 rounded-full ${feedback.isCorrect ? 'bg-emerald-500' : 'bg-rose-500 animate-pulse'}`}></div>
+                      <h4 className={`text-xl font-black mono uppercase ${feedback.isCorrect ? 'text-emerald-400' : 'text-rose-400'}`}>{feedback.message}</h4>
                     </div>
 
                     <div className="mb-8 p-6 rounded-2xl bg-black/20 border border-white/5">
                        <p className="text-xs md:text-sm leading-relaxed opacity-80">{feedback.explanation}</p>
                     </div>
-
-                    {aiLoading && (
-                      <div className="py-6 text-center animate-pulse">
-                        <div className="inline-block w-2 h-2 bg-blue-500 rounded-full mr-1"></div>
-                        <div className="inline-block w-2 h-2 bg-blue-500 rounded-full mr-1"></div>
-                        <div className="inline-block w-2 h-2 bg-blue-500 rounded-full"></div>
-                        <p className="text-[9px] mono uppercase font-black mt-2 opacity-50">Chief is drafting analysis...</p>
-                      </div>
-                    )}
-
-                    {chiefAnalysis && (
-                      <div className="mb-8 p-6 rounded-2xl bg-blue-600/5 border border-blue-500/20 animate-in fade-in duration-700">
-                         <p className="text-[11px] md:text-sm italic leading-relaxed text-blue-100 opacity-90">
-                           <span className="text-blue-400 font-black mr-2">CHIEF'S DEBRIEF:</span>
-                           "{chiefAnalysis}"
-                         </p>
-                      </div>
-                    )}
 
                     <div className="space-y-6">
                       <button onClick={nextQuestion} className="w-full py-6 bg-blue-600 text-white font-black uppercase tracking-widest text-sm rounded-2xl shadow-xl active:scale-95 transition-transform">Next Log Entry</button>
@@ -396,11 +342,7 @@ const App: React.FC = () => {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-10">
-                   <div className={`${cardClasses} p-6 rounded-3xl`}>
-                      <h3 className="text-[10px] font-black uppercase opacity-40 mb-4 tracking-widest">Chief's Tip</h3>
-                      <p className="text-sm italic leading-relaxed opacity-80">"{chiefTip}"</p>
-                   </div>
+                <div className="pt-10">
                    <DiagnosticDisplay paper={activePaper} currentQuestion={currentQuestion} theme={theme} />
                 </div>
               </div>
