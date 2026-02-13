@@ -5,9 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
     <meta name="theme-color" content="#0d3b66">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="./manifest.json">
+    <link rel="manifest" href="/manifest.json">
     <title>The Chief's Log</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
@@ -17,21 +17,12 @@
             background-color: #1b1e23;
             color: #e2e8f0;
             overscroll-behavior-y: none;
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-            padding-left: env(safe-area-inset-left);
-            padding-right: env(safe-area-inset-right);
         }
         .mono {
             font-family: 'Roboto Mono', monospace;
         }
         * {
             -webkit-tap-highlight-color: transparent;
-            user-select: none;
-        }
-        button:active {
-            transform: scale(0.96);
-            opacity: 0.8;
         }
     </style>
 <script type="importmap">
@@ -48,12 +39,13 @@
 </head>
 <body>
     <div id="root"></div>
-    <!-- Application Entry Point -->
-    <script type="module" src="./index.tsx"></script>
+    <script type="module" src="/index.tsx"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed:', err));
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('Log: Service Worker Active'))
+                    .catch(err => console.warn('Log: Offline mode limited', err));
             });
         }
     </script>
