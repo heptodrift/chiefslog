@@ -1,14 +1,14 @@
 
 /**
  * THE CHIEF'S NEURAL CORE - OFFLINE
- * All AI SDK initializations and environment variable checks 
- * have been purged to prevent "Zombie Code" crashes.
+ * All AI SDK initializations have been purged.
+ * This file is a stub to prevent import errors.
  */
 
 export const getChiefAnalysis = async () => {
-  return "Analysis offline.";
+  return "Analysis offline. Please consult the TSSA documentation.";
 };
 
 export const getChiefTip = async () => {
-  return "Consult the technical manuals.";
+  return "Safety first. Verify your calculations manually.";
 };
