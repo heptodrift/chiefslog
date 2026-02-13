@@ -1,9 +1,9 @@
 
-const CACHE_NAME = 'chief-log-v1.1'; // Incremented to force update
+const CACHE_NAME = 'chief-log-v1.2'; 
 const ASSETS = [
-    './',
-    './index.html',
-    './manifest.json',
+    '/',
+    '/index.html',
+    '/manifest.json',
     'https://cdn.tailwindcss.com',
     'https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Inter:wght@400;600;800&display=swap'
 ];
@@ -37,3 +37,4 @@ self.addEventListener('fetch', (event) => {
         })
     );
 });
+
