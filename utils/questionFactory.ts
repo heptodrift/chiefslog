@@ -1007,7 +1007,7 @@ const theoryPools: Record<string, any[]> = {
     { topic: 'IC Engines', prompt: '"Flashback" in an engine intake usually indicates:', correct: 'Lean mixture or timing issue', distractors: ['Rich mixture', 'Cold oil', 'Low pressure'], citation: null, explanation: 'Combustion in manifold.' },
     { topic: 'Prime Movers', prompt: 'Mollier diagram is a plot of:', correct: 'Enthalpy vs Entropy', distractors: ['Pressure vs Volume', 'Temperature vs Entropy', 'Quality vs Pressure'], citation: null, explanation: 'h-s chart.' },
     { topic: 'IC Engines', prompt: 'Cooling water "Scale" leads to:', correct: 'Overheating of cylinder walls', distractors: ['Improved efficiency', 'Reduced noise', 'Easier starting'], citation: null, explanation: 'Insulation effect.' },
-    { topic: 'Lubrication', prompt: '"Pour Point" is the lowest temperature at which:', correct: 'Oil will still flow', distractors: ['Oil catches fire', 'Oil boils', 'Wax forms'], citation: null, explanation: 'Cold flow limit.' }
+    { topic: 'Lubrication', prompt: '"Pour Point" is the lowest temperature at which:', correct: 'Oil will still flow', distractors: ['Oil catches fire', 'Oil boils', 'Wax forms'], citation: null, explanation: 'Cold flow limit.' },
   ],
   P2B2: [
     { topic: 'Control Systems', prompt: 'A "Bode Plot" displays:', correct: 'Gain and Phase Shift vs Frequency', distractors: ['Pressure vs Temp', 'Flow vs Level', 'Time vs Error'], citation: null },
