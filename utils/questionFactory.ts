@@ -1265,7 +1265,7 @@ const theoryPools: Record<string, any[]> = {
 { topic: 'Refrigeration', prompt: 'COP (Coefficient of Performance) =', correct: 'Cooling Load / Power Input', distractors: ['Power / Load', 'NRE / Work', '1'], citation: null },
 { topic: 'Refrigeration', prompt: '1 Ton of Refrigeration =', correct: '288,000 BTU/day or 12,000 BTU/hr', distractors: ['1000 BTU', '100 kW', '50 HP'], citation: null },
 { topic: 'Refrigeration', prompt: 'R-717 (Ammonia) is incompatible with:', correct: 'Copper and Brass', distractors: ['Steel', 'Iron', 'Aluminum'], citation: null },
-{ topic: 'Refrigeration', prompt: 'Lithium Bromide Absorption uses water as the:', correct: 'Refrigerant', distractors: ['Absorbent', 'Fuel', 'Oil'], citation: null }
+{ topic: 'Refrigeration', prompt: 'Lithium Bromide Absorption uses water as the:', correct: 'Refrigerant', distractors: ['Absorbent', 'Fuel', 'Oil'], citation: null },
 { topic: 'Electrotechnology', prompt: 'ANSI Device 27 represents:', correct: 'Undervoltage Relay', distractors: ['Overvoltage', 'Overcurrent', 'Frequency'], citation: null },
 { topic: 'Electrotechnology', prompt: 'ANSI Device 59 represents:', correct: 'Overvoltage Relay', distractors: ['Undervoltage', 'Differential', 'Distance'], citation: null },
 { topic: 'Electrotechnology', prompt: 'ANSI Device 81 represents:', correct: 'Frequency Relay', distractors: ['Voltage', 'Current', 'Power'], citation: null },
@@ -1290,7 +1290,7 @@ const theoryPools: Record<string, any[]> = {
 { topic: 'Refrigeration', prompt: 'The "External Equalizer" on a TXV is required when:', correct: 'There is a significant pressure drop across the evaporator', distractors: ['Pressure drop is zero', 'System is small', 'Ammonia is used'], citation: null },
 { topic: 'Refrigeration', prompt: '"Subcooling" ensures:', correct: 'Solid liquid reaches the expansion valve (no flash gas)', distractors: ['Gas reaches the compressor', 'Oil flows', 'Ice forms'], citation: null },
 { topic: 'Refrigeration', prompt: 'Which refrigerant is a CFC?', correct: 'R-12', distractors: ['R-134a', 'R-717', 'R-22 (HCFC)'], citation: null },
-{ topic: 'Refrigeration', prompt: 'Cryogenic fluids are stored in:', correct: 'Dewar flasks (Vacuum insulated vessels)', distractors: ['Plastic buckets', 'Glass bottles', 'Standard steel tanks'], citation: null }
+{ topic: 'Refrigeration', prompt: 'Cryogenic fluids are stored in:', correct: 'Dewar flasks (Vacuum insulated vessels)', distractors: ['Plastic buckets', 'Glass bottles', 'Standard steel tanks'], citation: null },
 { topic: 'Electrotechnology', prompt: 'ANSI Device "50" represents:', correct: 'Instantaneous Overcurrent Relay', distractors: ['Time Overcurrent', 'Differential', 'Undervoltage'], citation: null },
 { topic: 'Electrotechnology', prompt: 'ANSI Device "51" represents:', correct: 'AC Time Overcurrent Relay', distractors: ['Instantaneous', 'Distance', 'Frequency'], citation: null },
 { topic: 'Electrotechnology', prompt: 'ANSI Device "87" represents:', correct: 'Differential Protective Relay', distractors: ['Overcurrent', 'Lockout', 'Ground Fault'], citation: null },
