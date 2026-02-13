@@ -1,4 +1,3 @@
-
 import React, { useCallback, useEffect, useState, useRef } from 'react';
 import DiagnosticDisplay from './components/DiagnosticDisplay';
 import { Paper, Question, HistoryEntry, ExamRecord } from './types';
@@ -112,7 +111,7 @@ const App: React.FC = () => {
     setFeedback(null);
     setSelectedOption(null);
     
-    const sequence = examSequences[paper];
+    const sequence = examSequences[paper] || generateSecureSequence(TOTAL_QUESTIONS_PER_SECTION);
     const actualIndex = sequence[position % TOTAL_QUESTIONS_PER_SECTION];
     const q = generateQuestionFromEngine(paper, actualIndex);
     setCurrentQuestion(q);
@@ -241,7 +240,7 @@ const App: React.FC = () => {
                     <p className="text-[10px] opacity-50 uppercase tracking-widest">{new Date(hs.timestamp).toLocaleDateString()}</p>
                   </div>
                   <div className="text-right">
-                     <span className="text-3xl font-black tracking-tighter">{hs.score}%</span>
+                     <span className="text-3xl font-black tracking-tighter">{Math.round((hs.score / hs.total) * 100)}%</span>
                      <p className="text-[8px] opacity-40 uppercase">Grade</p>
                   </div>
                 </div>
@@ -360,7 +359,7 @@ const App: React.FC = () => {
                     </div>
 
                     <div className="mb-8 p-6 rounded-2xl bg-black/20 border border-white/5">
-                       <p className="text-xs md:text-sm leading-relaxed opacity-80">{feedback.explanation}</p>
+                        <p className="text-xs md:text-sm leading-relaxed opacity-80">{feedback.explanation}</p>
                     </div>
 
                     <div className="space-y-6">
